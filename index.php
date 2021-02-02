@@ -18,6 +18,10 @@ if(isset($_POST['addNote'])){
     header('Location: index.php');
     exit();
   }
+
+  $sql = "INSERT INTO notes (name) VALUES (:name)";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':name' => $note]);
 }
 
 
@@ -76,7 +80,7 @@ if(isset($_POST['addNote'])){
           <div class="modal-body">
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
               <div class="mb-3">
-                <input type="text" class="form-control" name="note" id="note" placeholder="Tell me what's crackin!">
+                <input type="text" class="form-control" name="note" id="note" required placeholder="Tell me what's crackin!">
                 <?php if(isset($_SESSION['msg'])): ?>
                 <p id="add-msg" class="text-danger"><?php echo $_SESSION['msg']; ?></p>
                 <?php endif; ?>
