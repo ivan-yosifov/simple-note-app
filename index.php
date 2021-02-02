@@ -1,5 +1,6 @@
 <?php require_once('./db.php'); ?>
 <?php 
+session_start();
 
 // get all notes
 $sql = "SELECT * FROM notes";
@@ -7,6 +8,17 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $notes = $stmt->fetchAll(PDO::FETCH_OBJ);
 $count = 1;
+
+// add note
+if(isset($_POST['addNote'])){
+  $note = trim($_POST['note']);
+
+  if(strlen($note) == 0){
+    $_SESSION['msg'] = 'Please enter something';
+    header('Location: index.php');
+    exit();
+  }
+}
 
 
 ?>
@@ -64,9 +76,12 @@ $count = 1;
           <div class="modal-body">
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
               <div class="mb-3">
-                <!-- <label for="note" class="form-label">Tell me what's crackin!</label> -->
-                <input type="text" class="form-control" id="note" required autofocus placeholder="Tell me what's crackin!">
+                <input type="text" class="form-control" name="note" id="note" placeholder="Tell me what's crackin!">
+                <?php if(isset($_SESSION['msg'])): ?>
+                <p id="add-msg" class="text-danger"><?php echo $_SESSION['msg']; ?></p>
+                <?php endif; ?>
               </div>
+              
               <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-success" name="addNote">Add</button>
               </div>
@@ -76,5 +91,25 @@ $count = 1;
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <?php if(isset($_SESSION['msg'])): ?>
+    <script>new bootstrap.Modal(document.getElementById('addModal')).show();</script>
+    <?php endif; ?>
+    <script>
+      var myModal = document.getElementById('addModal')
+      var myInput = document.getElementById('note')
+
+      myModal.addEventListener('shown.bs.modal', function () {
+        myInput.focus()
+      })
+    </script>
+    <script>
+      var myModal = document.getElementById('addModal')
+      myModal.addEventListener('hidden.bs.modal', function (event) {
+        var errorMessage= document.getElementById('add-msg')
+        if(errorMessage) errorMessage.remove()
+      })
+
+    </script>
   </body>
 </html>
+<?php if(isset($_SESSION['msg'])){ unset($_SESSION['msg']); } ?>
