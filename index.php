@@ -30,7 +30,7 @@ if(isset($_POST['addNote'])){
 // delete note
 if(isset($_POST['deleteNote'])){
   $id = $_POST['deleteId'];
-  $sql = "DELETE FROM notes WHERE id = :id";
+  $sql = "DELETE FROM notes WHERE id = :id LIMIT 1";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':id' => $id]);
 
@@ -73,8 +73,8 @@ if(isset($_POST['deleteNote'])){
                 <th scope="row"><?php echo $count++; ?></th>
                 <td><?php echo $note->name; ?></td>
                 <td class="text-center">
-                  <a href="#" class="text-decoration-none mx-2" title="Update">✏️</a>                  
-                  <button type="button" class="btn btn-link text-decoration-none mx-2 deleteConfirm" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Delete" data-id="<?php echo $note->id; ?>" >❌</button>
+                  <button type="button" class="btn btn-link text-decoration-none mx-2 updateBtn" data-bs-toggle="modal" data-bs-target="#updateModal" title="Update" data-id="<?php echo $note->id; ?>" data-text="<?php echo $note->name; ?>">✏️</button>
+                  <button type="button" class="btn btn-link text-decoration-none mx-2 deleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Delete" data-id="<?php echo $note->id; ?>" >❌</button>
                 </td>
               </tr>
               <?php endforeach; ?>
@@ -88,7 +88,7 @@ if(isset($_POST['deleteNote'])){
     <div id="addModal" class="modal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header text-white bg-success">
             <h5 class="modal-title">📝 Add A Note </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
@@ -109,6 +109,36 @@ if(isset($_POST['deleteNote'])){
       </div>
     </div>
 
+    <!-- Modal Update Note -->
+    <div id="updateModal" class="modal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header text-white bg-warning">
+            <h5 class="modal-title">✏️ Update A Note </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+              <div class="mb-3">
+                <input type="text" class="form-control" name="updateNote" id="updateNote" required placeholder="Tell me what's crackin!" value="">
+                <?php if(isset($_SESSION['msg'])): ?>
+                <p id="add-msg" class="text-danger"><?php echo $_SESSION['msg']; ?></p>
+                <?php endif; ?>
+              </div>
+              <div class="d-flex justify-content-end">
+                <input type="hidden" name="updateId" id="updateId" value="">
+                <button type="submit" class="btn btn-warning me-2" name="updateNote">Update</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              </div>
+              
+            </form>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Modal Delete Note -->
     <div id="deleteModal" class="modal" tabindex="-1">
@@ -122,7 +152,7 @@ if(isset($_POST['deleteNote'])){
             <p>Are you sure you want to delete this note?</p>
           </div>
           <div class="modal-footer">
-            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" class="delete-form d-inline-block" >
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" class="d-inline-block" >
               <input type="hidden" name="deleteId" id="deleteId" value="">
               <button type="submit" class="btn btn-danger" name="deleteNote">Yes, Delete</button>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, I changed my mind</button>
@@ -133,9 +163,11 @@ if(isset($_POST['deleteNote'])){
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
     <?php if(isset($_SESSION['msg'])): ?>
     <script>new bootstrap.Modal(document.getElementById('addModal')).show();</script>
     <?php endif; ?>
+
     <script>
       var myModal = document.getElementById('addModal')
 
@@ -153,7 +185,7 @@ if(isset($_POST['deleteNote'])){
 
 
       // add id to deleteModal
-      var deleteBtns = document.getElementsByClassName('deleteConfirm');
+      var deleteBtns = document.getElementsByClassName('deleteBtn');
       for (let i = 0; i < deleteBtns.length; i++){
         deleteBtns[i].addEventListener('click', function(e){
           var id = e.target.dataset.id;
