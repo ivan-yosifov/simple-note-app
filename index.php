@@ -27,6 +27,25 @@ if(isset($_POST['addNote'])){
   exit();
 }
 
+// update note
+if(isset($_POST['updateNote'])){
+  $id = $_POST['updateId'];
+  $note = trim($_POST['updateText']);
+
+  if(strlen($note) == 0){
+    $_SESSION['update-msg'] = 'Please enter something';
+    header('Location: index.php');
+    exit();
+  }
+
+  $sql = "UPDATE notes SET name = :name WHERE id = :id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':name' => $note, ':id' => $id]);
+
+  header('Location: index.php');
+  exit();
+}
+
 // delete note
 if(isset($_POST['deleteNote'])){
   $id = $_POST['deleteId'];
@@ -120,9 +139,9 @@ if(isset($_POST['deleteNote'])){
           <div class="modal-body">
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
               <div class="mb-3">
-                <input type="text" class="form-control" name="updateNote" id="updateNote" required placeholder="Tell me what's crackin!" value="">
-                <?php if(isset($_SESSION['msg'])): ?>
-                <p id="add-msg" class="text-danger"><?php echo $_SESSION['msg']; ?></p>
+                <input type="text" class="form-control" name="updateText" id="updateText" required placeholder="Tell me what's crackin!" value="">
+                <?php if(isset($_SESSION['update-msg'])): ?>
+                <p id="update-msg" class="text-danger"><?php echo $_SESSION['update-msg']; ?></p>
                 <?php endif; ?>
               </div>
               <div class="d-flex justify-content-end">
@@ -168,6 +187,10 @@ if(isset($_POST['deleteNote'])){
     <script>new bootstrap.Modal(document.getElementById('addModal')).show();</script>
     <?php endif; ?>
 
+    <?php if(isset($_SESSION['update-msg'])): ?>
+    <script>new bootstrap.Modal(document.getElementById('updateModal')).show();</script>
+    <?php endif; ?>
+
     <script>
       var myModal = document.getElementById('addModal')
 
@@ -184,6 +207,21 @@ if(isset($_POST['deleteNote'])){
       })
 
 
+      var updateModal = document.getElementById('updateModal')
+
+      // focus input field
+      var myInput = document.getElementById('updateText')
+      updateModal.addEventListener('shown.bs.modal', function () {
+        myInput.focus()
+      })
+
+      // remove error on updateModal close
+      updateModal.addEventListener('hidden.bs.modal', function (event) {
+        var errorMessage= document.getElementById('update-msg')
+        if(errorMessage) errorMessage.remove()
+      })
+
+
       // add id to deleteModal
       var deleteBtns = document.getElementsByClassName('deleteBtn');
       for (let i = 0; i < deleteBtns.length; i++){
@@ -192,8 +230,20 @@ if(isset($_POST['deleteNote'])){
           document.getElementById('deleteId').setAttribute('value', id);   
         })
       }
+
+      // add id and text to updateModal
+      var updateBtns = document.getElementsByClassName('updateBtn');
+      for(let i = 0; i < updateBtns.length; i++){
+        updateBtns[i].addEventListener('click', function(e){
+          var id = e.target.dataset.id;
+          var taskText = e.target.dataset.text;
+          document.getElementById('updateId').setAttribute('value', id);
+          document.getElementById('updateText').value = taskText;
+        })
+      }
           
     </script>
   </body>
 </html>
 <?php if(isset($_SESSION['msg'])){ unset($_SESSION['msg']); } ?>
+<?php if(isset($_SESSION['update-msg'])){ unset($_SESSION['update-msg']); } ?>
