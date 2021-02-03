@@ -2,11 +2,41 @@
 <?php 
 session_start();
 
+// Pagination
+$page = 1;
+if(isset($_GET['page'])){
+  $page = $_GET['page'];
+}
+
+$perPage = 5;
+if(isset($_GET['per-page']) && $_GET['per-page'] <= 50){
+  $perPage = $_GET['per-page'];
+}
+
+$start = 0;
+if($page > 1){
+  $start = ($page * $perPage) - $perPage;
+}
+
+// print_r($start);
+// echo '<br>';
+// print_r($perPage);
+// die();
+
 // get all notes
-$sql = "SELECT * FROM notes";
+$sql = "SELECT * FROM notes LIMIT :start, :perPage";
 $stmt = $pdo->prepare($sql);
+$stmt->bindParam(':start', $start, PDO::PARAM_INT);
+$stmt->bindParam(':perPage', $perPage, PDO::PARAM_INT);
 $stmt->execute();
+
 $notes = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+$total = $pdo->prepare("SELECT COUNT(*) FROM notes");
+$total->execute();
+$totalCount = $total->fetchColumn();
+
+$pages = ceil($totalCount / $perPage);
 $count = 1;
 
 // add note
@@ -99,6 +129,14 @@ if(isset($_POST['deleteNote'])){
               <?php endforeach; ?>
             </tbody>
           </table>
+
+          <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <?php for($i = 1; $i <= $pages; $i++): ?>
+              <li class="page-item"><a class="page-link" href="?page=<?php echo $i ?>&per-page=<?php echo $perPage; ?>"><?php echo $i; ?></a></li>
+              <?php endfor; ?>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
