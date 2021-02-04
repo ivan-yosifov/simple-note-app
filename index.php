@@ -5,12 +5,12 @@ session_start();
 // Pagination
 $page = 1;
 if(isset($_GET['page'])){
-  $page = $_GET['page'];
+  $page = (int)$_GET['page'];
 }
 
 $perPage = 5;
-if(isset($_GET['per-page']) && $_GET['per-page'] <= 50){
-  $perPage = $_GET['per-page'];
+if(isset($_GET['per-page']) && (int)$_GET['per-page'] <= 50){
+  $perPage = (int)$_GET['per-page'];
 }
 
 $start = 0;
@@ -18,26 +18,53 @@ if($page > 1){
   $start = ($page * $perPage) - $perPage;
 }
 
-// print_r($start);
-// echo '<br>';
-// print_r($perPage);
-// die();
 
-// get all notes
-$sql = "SELECT * FROM notes LIMIT :start, :perPage";
-$stmt = $pdo->prepare($sql);
-$stmt->bindParam(':start', $start, PDO::PARAM_INT);
-$stmt->bindParam(':perPage', $perPage, PDO::PARAM_INT);
-$stmt->execute();
+// searchNote
+if(isset($_POST['searchNote'])){
+  $searchFor = trim($_POST['searchFor']);
 
-$notes = $stmt->fetchAll(PDO::FETCH_OBJ);
+  if(strlen($searchFor) == 0){
+    $_SESSION['search-msg'] = 'Please enter something';
+    header('Location: index.php');
+    exit();
+  }
 
-$total = $pdo->prepare("SELECT COUNT(*) FROM notes");
-$total->execute();
-$totalCount = $total->fetchColumn();
+  $searchFor = '%'.$searchFor.'%';
 
-$pages = ceil($totalCount / $perPage);
-$count = 1;
+  $sql = "SELECT * FROM notes WHERE name LIKE :searchFor LIMIT :start, :perPage";
+  $stmt = $pdo->prepare($sql);
+  $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+  $stmt->bindParam(':perPage', $perPage, PDO::PARAM_INT);
+  $stmt->bindParam(':searchFor', $searchFor, PDO::PARAM_STR);
+  $stmt->execute();
+
+  $notes = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+  // print_r($stmt->rowCount());die();
+  
+  $total = $pdo->prepare("SELECT COUNT(*) FROM notes");
+  $total->execute();
+  $totalCount = $total->fetchColumn();
+
+  $pages = ceil($totalCount / $perPage);
+  $count = 1;
+}else{
+  // get all notes
+  $sql = "SELECT * FROM notes LIMIT :start, :perPage";
+  $stmt = $pdo->prepare($sql);
+  $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+  $stmt->bindParam(':perPage', $perPage, PDO::PARAM_INT);
+  $stmt->execute();
+
+  $notes = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+  $total = $pdo->prepare("SELECT COUNT(*) FROM notes");
+  $total->execute();
+  $totalCount = $total->fetchColumn();
+
+  $pages = ceil($totalCount / $perPage);
+  $count = 1;
+}
 
 // add note
 if(isset($_POST['addNote'])){
@@ -88,6 +115,8 @@ if(isset($_POST['deleteNote'])){
 }
 
 
+
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -106,9 +135,24 @@ if(isset($_POST['deleteNote'])){
       <button class="btn btn-success my-4" type="button" data-bs-toggle="modal" data-bs-target="#addModal">Add Note 📝</button>
     </div>
     <div class="container">
+
       <div class="row">
+
         <div class="col-md-10 offset-md-1">
-          <table class="table table-striped">
+          <form class="mb-4" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+            <div class="d-flex">
+              <input class="form-control me-2" type="search" name="searchFor" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success" type="submit" name="searchNote">Search</button>
+            </div>
+            <?php if(isset($_SESSION['search-msg'])): ?>
+            <p id="search-msg" class="text-danger"><?php echo $_SESSION['search-msg']; ?></p>
+            <?php endif; ?>
+          </form>
+
+          <?php if($stmt->rowCount() == 0): ?>
+          <p class="lead text-warning">Nothing found</p>
+          <?php else: ?>
+          <table class="table table-striped table-hover">
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -130,13 +174,15 @@ if(isset($_POST['deleteNote'])){
             </tbody>
           </table>
 
-          <nav aria-label="Page navigation example">
-            <ul class="pagination">
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
               <?php for($i = 1; $i <= $pages; $i++): ?>
               <li class="page-item"><a class="page-link" href="?page=<?php echo $i ?>&per-page=<?php echo $perPage; ?>"><?php echo $i; ?></a></li>
               <?php endfor; ?>
             </ul>
           </nav>
+
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -285,3 +331,4 @@ if(isset($_POST['deleteNote'])){
 </html>
 <?php if(isset($_SESSION['msg'])){ unset($_SESSION['msg']); } ?>
 <?php if(isset($_SESSION['update-msg'])){ unset($_SESSION['update-msg']); } ?>
+<?php if(isset($_SESSION['search-msg'])){ unset($_SESSION['search-msg']); } ?>
