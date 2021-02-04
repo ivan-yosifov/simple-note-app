@@ -29,25 +29,24 @@ if(isset($_POST['searchNote'])){
     exit();
   }
 
-  $searchFor = '%'.$searchFor.'%';
 
-  $sql = "SELECT * FROM notes WHERE name LIKE :searchFor LIMIT :start, :perPage";
+  $searchString = '%'.$searchFor.'%';
+
+  $sql = "SELECT * FROM notes WHERE name LIKE :searchFor";
   $stmt = $pdo->prepare($sql);
-  $stmt->bindParam(':start', $start, PDO::PARAM_INT);
-  $stmt->bindParam(':perPage', $perPage, PDO::PARAM_INT);
-  $stmt->bindParam(':searchFor', $searchFor, PDO::PARAM_STR);
+  $stmt->bindParam(':searchFor', $searchString, PDO::PARAM_STR);
   $stmt->execute();
 
   $notes = $stmt->fetchAll(PDO::FETCH_OBJ);
 
-  // print_r($stmt->rowCount());die();
-  
   $total = $pdo->prepare("SELECT COUNT(*) FROM notes");
   $total->execute();
-  $totalCount = $total->fetchColumn();
+  $totalCount = $stmt->rowCount();
 
   $pages = ceil($totalCount / $perPage);
   $count = 1;
+
+  
 }else{
   // get all notes
   $sql = "SELECT * FROM notes LIMIT :start, :perPage";
@@ -127,6 +126,9 @@ if(isset($_POST['deleteNote'])){
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
     <title>Notes App</title>
+    <style>
+      #clearSearch{display:none;position: absolute;right: 65px;top: 5px;cursor: pointer;}
+    </style>
   </head>
   <body>
     <div class="container text-center py-5 px-3">
@@ -140,9 +142,10 @@ if(isset($_POST['deleteNote'])){
 
         <div class="col-md-10 offset-md-1">
           <form class="mb-4" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
-            <div class="d-flex">
-              <input class="form-control me-2" type="search" name="searchFor" placeholder="Search" aria-label="Search">
-              <button class="btn btn-outline-success" type="submit" name="searchNote">Search</button>
+            <div class="d-flex position-relative">
+              <input class="form-control me-2" type="search" id="searchInput" name="searchFor" value="<?php if(isset($_POST['searchFor'])) echo $searchFor; ?>" placeholder="Search" aria-label="Search">
+              <span id="clearSearch">❎</span>
+              <button class="btn btn-link text-decoration-none" type="submit" name="searchNote">🔍</button>
             </div>
             <?php if(isset($_SESSION['search-msg'])): ?>
             <p id="search-msg" class="text-danger"><?php echo $_SESSION['search-msg']; ?></p>
@@ -174,6 +177,7 @@ if(isset($_POST['deleteNote'])){
             </tbody>
           </table>
 
+          <?php if(!isset($searchFor)): ?>
           <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
               <?php for($i = 1; $i <= $pages; $i++): ?>
@@ -181,6 +185,7 @@ if(isset($_POST['deleteNote'])){
               <?php endfor; ?>
             </ul>
           </nav>
+          <?php endif; ?>
 
           <?php endif; ?>
         </div>
@@ -325,7 +330,27 @@ if(isset($_POST['deleteNote'])){
           document.getElementById('updateText').value = taskText;
         })
       }
-          
+      
+      document.getElementById('searchInput').addEventListener('keyup', function(e){
+        console.log(e.target.value.trim());
+        if(e.target.value.trim().length != 0){
+          document.getElementById('clearSearch').style.display = 'block';
+        }else{
+          document.getElementById('clearSearch').style.display = 'none';
+        }
+      })
+
+      window.addEventListener('DOMContentLoaded', function(){
+        if(document.getElementById('searchInput').value.length != 0){
+          document.getElementById('clearSearch').style.display = 'block';
+        }
+
+        document.getElementById('clearSearch').addEventListener('click', function(e){
+          document.getElementById('searchInput').value = '';
+          this.style.display = 'none';
+          window.location.href = 'index.php';
+        })
+      })
     </script>
   </body>
 </html>
