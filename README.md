@@ -4,7 +4,9 @@ This simple app offers Create Read Update Delete (CRUD) functionality with PHP. 
 
 The project allows us to add, view, update and delete notes. There is pagination and search functionality.
 
-The project was written as a challenge to create CRUD withous using separate files for adding, editing, and deleting notes. There are basically two files:
+The project was written as a *challenge to create CRUD withous using separate files* for adding, editing, and deleting notes. 
+
+There are basically two files:
 1. db.php - contains connection to Database
 2. index.php - contains logic and markup
 
