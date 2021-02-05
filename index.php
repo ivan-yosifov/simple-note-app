@@ -284,9 +284,9 @@ if(isset($_POST['deleteNote'])){
       var myModal = document.getElementById('addModal')
 
       // focus input field
-      var myInput = document.getElementById('note')
+      var addInput = document.getElementById('note')
       myModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
+        addInput.focus()
       })
 
       // remove error on addModal close
@@ -299,9 +299,9 @@ if(isset($_POST['deleteNote'])){
       var updateModal = document.getElementById('updateModal')
 
       // focus input field
-      var myInput = document.getElementById('updateText')
+      var updateInput = document.getElementById('updateText')
       updateModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
+        updateInput.focus()
       })
 
       // remove error on updateModal close
