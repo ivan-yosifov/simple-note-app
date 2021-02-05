@@ -22,12 +22,18 @@ CREATE TABLE `test`.`notes` ( `id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(
 ```
 
 ## Screenshots
+
+All notes
 ![all-notes](https://user-images.githubusercontent.com/6689087/107039981-46dd6780-67c7-11eb-8063-625940841604.png)
 
+Add a note
 ![add-note](https://user-images.githubusercontent.com/6689087/107040047-5eb4eb80-67c7-11eb-8187-92a121fca5ea.png)
 
+Update a note
 ![update-note](https://user-images.githubusercontent.com/6689087/107040062-62e10900-67c7-11eb-9c0e-296353566e8a.png)
 
+Delete a note
 ![delete-note](https://user-images.githubusercontent.com/6689087/107040069-64aacc80-67c7-11eb-8d99-92bdf1f7ee8e.png)
 
+Search for notes
 ![search-note](https://user-images.githubusercontent.com/6689087/107040074-65dbf980-67c7-11eb-838b-a26491c64f99.png)
